@@ -37,7 +37,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- In-memory state (resets on restart/redeploy — see note at bottom) ---
+# --- In-memory state (resets on restart/redeploy) ---
 TIPS = [
     "Add your own picks with /addtip <text>, or edit this list directly in bot.py.",
 ]
@@ -67,9 +67,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def whoami(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(
-        f"Your chat ID is: `{chat_id}`\n\n"
-        "Set this as ADMIN_CHAT_ID in Railway if you want /addtip access.",
-        parse_mode=ParseMode.MARKDOWN,
+        f"Your chat ID is: {chat_id}\n\n"
+        "Set this as ADMIN_CHAT_ID in Railway if you want /addtip access."
     )
 
 
@@ -111,13 +110,15 @@ async def bet9ja(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = format_bet9ja_odds(matches)
     except Bet9jaServiceError as e:
         message = f"⚠️ {e}"
-    await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
+    # No parse_mode here — scraped match/league names can contain characters
+    # that break Telegram's Markdown parser and silently fail to send.
+    await update.message.reply_text(message)
 
 
 async def tips(update: Update, context: ContextTypes.DEFAULT_TYPE):
     body = "\n\n".join(f"📌 {t}" for t in TIPS)
-    text = f"{body}\n\n_These are analysis/opinion, not guarantees._"
-    await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+    text = f"{body}\n\nThese are analysis/opinion, not guarantees."
+    await update.message.reply_text(text)
 
 
 async def addtip(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -195,13 +196,11 @@ async def live_match_check_job(application: Application):
             home = event.get("home_team", "Home")
             away = event.get("away_team", "Away")
             score_str = " - ".join(s["score"] for s in scores_data)
-            message = f"🔴 *Live now:* {home} {score_str} {away} ({sport})"
+            message = f"🔴 Live now: {home} {score_str} {away} ({sport})"
 
             for chat_id in NOTIFY_SUBSCRIBERS:
                 try:
-                    await application.bot.send_message(
-                        chat_id=chat_id, text=message, parse_mode=ParseMode.MARKDOWN
-                    )
+                    await application.bot.send_message(chat_id=chat_id, text=message)
                 except Exception as exc:
                     logger.warning("Failed to notify %s: %s", chat_id, exc)
 
