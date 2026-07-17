@@ -1,16 +1,32 @@
 """
 Wrapper around the community NaijaBet_Api library for Bet9ja soccer odds.
 NOTE: this is an unofficial, community-maintained library that reads Bet9ja's
-public site data. It covers 1X2 soccer odds only, and may break if Bet9ja
-changes their site structure — wrapped in try/except so the bot won't crash.
+public site data. Its import style has changed between versions/docs, so this
+tries multiple known import patterns and uses whichever one actually works.
 """
 
+_AVAILABLE = False
+_IMPORT_ERROR = None
+Bet9jaClass = None
+Betid = None
+
+# Try pattern 1: lowercase module, e.g. `from NaijaBet_Api.bookmakers import bet9ja`
 try:
-    from NaijaBet_Api.bookmakers import bet9ja as bet9ja_module
-    from NaijaBet_Api.id import Betid
+    from NaijaBet_Api.bookmakers import bet9ja as _bet9ja_module
+    from NaijaBet_Api.id import Betid as _Betid
+    Bet9jaClass = _bet9ja_module.Bet9ja
+    Betid = _Betid
     _AVAILABLE = True
-except ImportError:
-    _AVAILABLE = False
+except Exception as e1:
+    # Try pattern 2: capitalized class imported directly, e.g. GitHub README style
+    try:
+        from NaijaBet_Api.bookmakers import Bet9ja as _Bet9jaClass
+        from NaijaBet_Api.id import Betid as _Betid
+        Bet9jaClass = _Bet9jaClass
+        Betid = _Betid
+        _AVAILABLE = True
+    except Exception as e2:
+        _IMPORT_ERROR = f"Pattern 1 failed: {e1} | Pattern 2 failed: {e2}"
 
 
 class Bet9jaServiceError(Exception):
@@ -20,21 +36,13 @@ class Bet9jaServiceError(Exception):
 LEAGUE_MAP = {
     "epl": "PREMIERLEAGUE",
     "premierleague": "PREMIERLEAGUE",
-    # Add more league names here as needed — check NaijaBet_Api's Betid
-    # enum (NaijaBet_Api/id.py on GitHub) for what's supported.
 }
 
 
 def get_bet9ja_odds(league: str = "epl"):
-    """
-    Fetch Bet9ja 1X2 odds for a given league (soccer only).
-    Returns a list of dicts like:
-      {'home': 4.0, 'draw': 3.75, 'away': 1.92, 'match': 'Team A - Team B',
-       'league': 'Premier League', 'match_id': 123, 'time': 1628881200000}
-    """
     if not _AVAILABLE:
         raise Bet9jaServiceError(
-            "NaijaBet_Api is not installed. Run: pip install NaijaBet-Api"
+            f"NaijaBet_Api could not be imported. Details: {_IMPORT_ERROR}"
         )
 
     league_key = LEAGUE_MAP.get(league.lower())
@@ -44,7 +52,7 @@ def get_bet9ja_odds(league: str = "epl"):
         )
 
     try:
-        b9 = bet9ja_module.Bet9ja()
+        b9 = Bet9jaClass()
         betid = getattr(Betid, league_key)
         return b9.get_league(betid)
     except Exception as exc:
