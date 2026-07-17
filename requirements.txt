@@ -2,4 +2,4 @@ python-telegram-bot==21.4
 requests==2.32.3
 APScheduler==3.10.4
 python-dotenv==1.0.1
-NaijaBet-Api==0.1.6
+NaijaBet-Api
