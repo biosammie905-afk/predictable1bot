@@ -55,11 +55,11 @@ def format_bet9ja_odds(matches: list, limit: int = 5) -> str:
     if not matches:
         return "No Bet9ja odds available for this league right now."
 
-    lines = ["*Bet9ja odds:*"]
+    lines = ["Bet9ja odds:"]
     for m in matches[:limit]:
         match_name = m.get("match", "Unknown match")
         home = m.get("home")
         draw = m.get("draw")
         away = m.get("away")
-        lines.append(f"• *{match_name}* — Home: {home}, Draw: {draw}, Away: {away}")
+        lines.append(f"• {match_name} — Home: {home}, Draw: {draw}, Away: {away}")
     return "\n".join(lines)
