@@ -17,12 +17,17 @@ BROADCAST_CHAT_IDS = [
 
 BROADCAST_INTERVAL_HOURS = float(os.getenv("BROADCAST_INTERVAL_HOURS", "6"))
 
-# Sports supported via The Odds API (sport_key: friendly name)
-# Full list of sport keys: https://the-odds-api.com/sports-odds-data/sports-apis.html
+# Your own Telegram chat ID — required to use /addtip. Get it from /whoami
+# after the bot is running, then add it as ADMIN_CHAT_ID in Railway variables.
+ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID", "")
+
+# How often (minutes) to check for newly-live matches
+LIVE_CHECK_INTERVAL_MINUTES = float(os.getenv("LIVE_CHECK_INTERVAL_MINUTES", "5"))
+
 SUPPORTED_SPORTS = {
-    "football": "soccer_epl",          # English Premier League as default football league
+    "football": "soccer_epl",
     "basketball": "basketball_nba",
-    "tennis": "tennis_atp_wimbledon",   # rotates by tournament season
+    "tennis": "tennis_atp_wimbledon",
     "americanfootball": "americanfootball_nfl",
     "baseball": "baseball_mlb",
 }
