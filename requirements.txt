@@ -4,3 +4,6 @@ APScheduler==3.10.4
 python-dotenv==1.0.1
 NaijaBet-Api
 aiohttp
+arrow
+beautifulsoup4
+lxml
